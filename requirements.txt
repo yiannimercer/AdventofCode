@@ -26,9 +26,6 @@ greenlet==2.0.2
 idna==3.4
 inflect==7.0.0
 iniconfig==2.0.0
-insight-common==0.0.66
-insight-file-generator==0.0.3
-insight-model-development==0.0.24
 isodate==0.6.1
 joblib==1.2.0
 llvmlite==0.40.1
