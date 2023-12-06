@@ -11,6 +11,10 @@ import numpy as np
 
 data = get_data(day=6, year=2023).splitlines()
 
+# --------------------------------------------------------------------
+# PART 1
+# --------------------------------------------------------------------
+
 winning_records = {'race1': 0,
                    'race2': 0,
                    'race3': 0,
@@ -64,10 +68,9 @@ for i in range(single_race_time):
         time_to_race = single_race_time - i
         speed = i
         distance_moved = time_to_race * speed
-        if distance_moved > distance_record:
+        if distance_moved > single_distance_record:
             part2_answer += 1
 
 
 submit(part2_answer, part='b', day=6, year=2023)      
-         
-        
+   
