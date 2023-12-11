@@ -2,7 +2,6 @@ from aocd import get_data, submit
 from dotenv import load_dotenv
 load_dotenv()
 
-from collections import *
 from enum import Enum
 
 #------------------------------------------------
