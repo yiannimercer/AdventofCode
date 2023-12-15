@@ -78,6 +78,9 @@ def create_hand_card_ranking(hand):
 for hand in poker_hands_classified:
     create_hand_card_ranking(hand)
 
+import pandas as pd
+pd.DataFrame(poker_hands_classified)
+
 # Sort Hands by Level of Importance, Hand Type, First Card, Etc.
 sorted_hands = sorted(poker_hands_classified, key=lambda k: (-k['hand_rank'],
                                                              k['card1'],
