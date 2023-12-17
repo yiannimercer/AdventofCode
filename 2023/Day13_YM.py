@@ -92,3 +92,43 @@ summarise_horizontal = [100 * line_count for line_count in lines_above_horizonta
 part1_answer = sum(lines_above_vertical_symmetry_line) + sum(summarise_horizontal)
 
 submit(part1_answer, part='a', day=13, year=2023)
+
+#------------------------------------------------
+# PART 2 
+#------------------------------------------------
+
+def flip_char(c):
+    return '.' if c == '#' else '#'
+
+def find_and_fix_smudge(pattern, check_function):
+    for row in range(len(pattern)):
+        for col in range(len(pattern[row])):
+            # Create a copy and flip the character at the current position
+            modified_pattern = [list(line) for line in pattern]
+            modified_pattern[row][col] = flip_char(modified_pattern[row][col])
+            modified_pattern = [''.join(line) for line in modified_pattern]
+
+            # Check for new line of reflection
+            reflection_line = check_function(modified_pattern)
+            if reflection_line > 0:
+                return reflection_line
+    return 0
+
+def summarize_new_reflection_lines(grouped_notes):
+    horizontal_summary = []
+    vertical_summary = []
+
+    for pattern in grouped_notes:
+        horizontal_line = find_and_fix_smudge(pattern, horizontal_check)
+        vertical_line = find_and_fix_smudge(pattern, vertical_check)
+
+        horizontal_summary.append(100 * horizontal_line)
+        vertical_summary.append(vertical_line)
+
+    return sum(horizontal_summary) + sum(vertical_summary)
+
+# Test with the provided examples
+part2_answer = summarize_new_reflection_lines(grouped_notes)
+print(part2_answer)
+
+submit(part2_answer, part='b', day=13, year=2023)
