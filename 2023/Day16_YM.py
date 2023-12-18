@@ -76,8 +76,6 @@ def get_energized_count(grid, start_heading):
         border = new_border
     return len(set(map(lambda x: x[:2], visited)))
 
-get_energized_count(example_input, (0, 0, "R"))
-
 submit(get_energized_count(contraption_raw, (0, 0, "R")), part='a', day=16, year=2023)
 
 # --------------------------------------------------------------------
