@@ -31,38 +31,50 @@ example_data = ['2413432311323',
 
 def min_heat_path(map_data) -> None:
 
+    # Grid Dimensions
     width = len(map_data[0])
     height = len(map_data)
 
+    # Directions and Initial Heap Setup
     directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
     heap = [(0, 0, 0, 0, 0), (0, 0, 0, 1, 0)]
+    
+    # Visited Set
     seen = set()
 
+    # Continues as long as there are elements in the heap
     while len(heap) > 0:
+        
         heat, x, y, direction, streak = heappop(heap)
 
         if (x, y, direction, streak) in seen:
             continue
 
         seen.add((x, y, direction, streak))
-
+        
+        # Checks if the bottom-right corner of the grid is reached.
+        # If yes, prints the total heat and exits the function.
         if x == width - 1 and y == height - 1:
             print(heat)
             return heat
 
+        # Updates the current position based on the direction.
+        # Skips the iteration if the new position is outside the grid boundaries.
         dx, dy = directions[direction]
         x += dx
         y += dy
 
         if x < 0 or x >= width or y < 0 or y >= height:
             continue
+        
+        # Increases the heat by the value of the current cell.
+        # If the streak is less than 2, adds the next state with the same direction and increased streak to the heap.
+        # Adds states with changed direction (right and left turns) to the heap, resetting the streak to 0.
 
         heat += int(map_data[y][x])
-
-
+        
         if streak < 2:
             heappush(heap, (heat, x, y, direction, streak + 1))
-
         heappush(heap, (heat, x, y, (direction + 1) % 4, 0))
         heappush(heap, (heat, x, y, (direction - 1) % 4, 0))
         
