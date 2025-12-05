@@ -5,6 +5,7 @@ from aocd import get_data, submit
 from utils.grid import Direction, Grid
 
 # %% 
+
 # ------------------------------------------------
 # LOAD DATA
 # ------------------------------------------------
