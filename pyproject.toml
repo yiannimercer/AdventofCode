@@ -1,0 +1,15 @@
+[project]
+name = "adventofcode"
+version = "0.1.0"
+description = "Yianni's solutions for https://adventofcode.com/"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[[project.authors]]
+name = "Yianni Mercer"
+email = "hey@yiannimercer.com"
+
+[tool.setuptools.packages.find]
+include = ["utils*"]
