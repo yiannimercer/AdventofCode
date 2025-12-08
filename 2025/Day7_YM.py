@@ -97,3 +97,60 @@ submit(answer_a, part="a", day=7, year=2025)
 # PUZZLE 2 
 # ------------------------------------------------
 
+from collections import defaultdict
+
+# Initialize our grid
+grid = Grid(data)
+
+# Dictionary that returns 0 for missing keys, tracks particle count per column
+counts = defaultdict(int)
+
+# Find the starting position (S) and set initial count to 1
+start_row, start_col = grid.find_first('S')
+counts[start_col] = 1
+
+# Process each row from top to bottom
+for row in range(grid.height):
+    
+    # Get all splitter positions in this row using iter_row
+    splitters = [cell.col for cell in grid.iter_row(row) if cell.value == '^']
+    
+    # Skip rows with no splitters
+    if not splitters:
+        continue
+    
+    # Create fresh dict for next row's counts
+    new_counts = defaultdict(int)
+    
+    # Process each column that currently has particles
+    for col, count in counts.items():
+        
+        # If this column has a splitter, split the beam
+        if col in splitters:
+            
+            # Send all particles left (adds to any existing count at col-1)
+            new_counts[col - 1] += count
+            
+            # Send all particles right (adds to any existing count at col+1)
+            new_counts[col + 1] += count
+        
+        # No splitter here, particles pass straight through
+        else:
+            new_counts[col] += count
+    
+    # Replace old counts with new counts for next iteration
+    counts = new_counts
+
+# Sum all particles that exited at the bottom
+total = sum(counts.values())
+
+print(f"Exit counts per column: {dict(sorted(counts.items()))}")
+print(f"Total particles: {total}")
+    
+answer_b = total
+
+# %%
+
+submit(answer_b, part="b", day=7, year=2025)
+
+# %%
