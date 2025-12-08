@@ -1,7 +1,6 @@
 # utils/grid.py
 
 from enum import Enum
-from itertools import count
 from typing import Optional, List, Tuple, Dict, Set, Iterator, Union
 from dataclasses import dataclass
 from collections import Counter
@@ -166,6 +165,18 @@ class Grid:
         if self.in_bounds(row, col):
             return self._grid[row][col]
         return default
+    
+    def get_row(self, row: int) -> Optional[List[str]]:
+        """Get a copy of a row as a list."""
+        if 0 <= row < self._height:
+            return self._grid[row].copy()
+        return None
+
+    def get_col(self, col: int) -> Optional[List[str]]:
+        """Get a column as a list."""
+        if 0 <= col < self._width:
+            return [self._grid[row][col] for row in range(self._height)]
+        return None
     
     def set(
         self,
@@ -349,6 +360,12 @@ class Grid:
     # ------------------------------------------------
     # COUNTING & FINDING 
     # ------------------------------------------------
+    
+    def col_values(self, col: int) -> Optional[str]:
+        """Get all values in a column as a string."""
+        if 0 <= col < self._width:
+            return "".join(self._grid[row][col] for row in range(self._height))
+        return None
     
     def count(
         self,
