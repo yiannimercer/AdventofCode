@@ -51,7 +51,7 @@ class Direction(Enum):
     def all(cls) -> List['Direction']:
         """Return all 8 directions."""
         return list(cls)
-
+    
 
 @dataclass
 class Cell:
@@ -103,7 +103,29 @@ class Grid:
             if len(row) != self._width:
                 raise ValueError(f"Row {i} has length {len(row)}, expected {self._width}")
             
-            
+    @classmethod
+    def from_dimensions(
+        cls,
+        height: int,
+        width: int,
+        fill_char: str = '.'
+    ) -> 'Grid':
+        """Create a grid of given dimensions filled with a character."""
+        data = [[fill_char] * width for _ in range(height)]
+        return cls(data)
+    
+    @classmethod
+    def from_file(
+        cls,
+        filepath: str
+    ) -> 'Grid':
+        """Load a grid from a text file (one row per line)."""
+        with open(filepath, 'r') as f:
+            lines = [line.rstrip('\n') for line in f.readlines()]
+        max_len = max(len(line) for line in lines) if lines else 0
+        padded = [line.ljust(max_len) for line in lines]
+        return cls(padded)
+    
     # ------------------------------------------------
     # PROPERTIES 
     # ------------------------------------------------
@@ -147,6 +169,62 @@ class Grid:
     ) -> bool:
         """Check if a position is within the grid boundaries."""
         return 0 <= row < self._height and 0 <= col < self._width
+    
+    def is_inside_polygon(
+        self,
+        point: Tuple[int, int],
+        perimeter: Set[Tuple[int, int]]
+    ) -> bool:
+        """
+        Check if a point is WITHIN a polygon (inside OR on perimeter).
+        """
+        # On the perimeter = within
+        if point in perimeter:
+            return True
+        
+        r, c = point
+        crossings = 0
+        
+        # Cast ray to the right, count perimeter crossings
+        for check_c in range(c + 1, self.width):
+            if (r, check_c) in perimeter:
+                crossings += 1
+        
+        # Odd crossings = inside, even = outside
+        return crossings % 2 == 1
+
+    def is_within_shape(
+        self,
+        positions: List[Tuple[int, int]],
+        shape: Set[Tuple[int, int]],
+        shape_is_filled: bool = True,
+        positions_is_filled: bool = True
+    ) -> bool:
+        """
+        Check if ALL positions are within the shape.
+        
+        Args:
+            positions: Coordinates to check (can be area or perimeter)
+            shape: Shape coordinates (can be area or perimeter)
+            shape_is_filled: True if shape contains all interior points, False if perimeter only
+            positions_is_filled: True if positions contains all interior points, False if perimeter only
+        """
+        # Convert to set for O(1) lookup
+        shape_set = set(shape) if not isinstance(shape, set) else shape
+        
+        if shape_is_filled:
+            # Shape has all points - simple membership check
+            # Works for both filled and perimeter positions
+            return all(pos in shape_set for pos in positions)
+        else:
+            # Shape is perimeter only - need ray casting
+            if positions_is_filled:
+                # Check every position with ray casting
+                return all(self.is_inside_polygon(pos, shape_set) for pos in positions)
+            else:
+                # Positions is perimeter only - if all perimeter points are inside,
+                # the whole rectangle is inside (for convex shapes like rectangles)
+                return all(self.is_inside_polygon(pos, shape_set) for pos in positions)
     
     def get(
         self,
@@ -473,6 +551,109 @@ class Grid:
                 lines.append("".join(row_chars))
         
         return "\n".join(lines)
+    
+    # ------------------------------------------------
+    # TRACING 
+    # ------------------------------------------------
+    
+    def trace_rectangle(
+        self,
+        corner1: Tuple[int, int],
+        corner2: Tuple[int, int], 
+        fill: bool = True
+    ) -> List[Tuple[int, int]]:
+        """
+        Get coordinates of a rectangle.
+        
+        Args:
+            corner1, corner2: Opposite corners of rectangle
+            fill: If True, return all interior positions. If False, return perimeter only.
+        
+        Returns:
+            List of (row, col) coordinates
+        """
+        r1, c1 = corner1
+        r2, c2 = corner2
+        
+        # Ensure r1,c1 is top-left and r2,c2 is bottom-right
+        r1, r2 = min(r1, r2), max(r1, r2)
+        c1, c2 = min(c1, c2), max(c1, c2)
+        
+        if fill:
+            # All positions inside the rectangle
+            positions = [(r, c) for r in range(r1, r2 + 1) for c in range(c1, c2 + 1)]
+        else:
+            # Perimeter only
+            positions = []
+            # Top and bottom edges
+            for c in range(c1, c2 + 1):
+                positions.append((r1, c))
+                positions.append((r2, c))
+            # Left and right edges (excluding corners already added)
+            for r in range(r1 + 1, r2):
+                positions.append((r, c1))
+                positions.append((r, c2))
+        
+        return positions
+    
+    def trace_polygon(
+        self,
+        corners: List[Tuple[int, int]],
+        fill: bool = False
+    ) -> Set[Tuple[int, int]]:
+        """
+        Trace a polygon from ordered corner points.
+        
+        Args:
+            corners: List of (row, col) corners in order
+            fill: If False, return perimeter only. If True, return all interior coordinates.
+        
+        Returns:
+            Set of (row, col) coordinates
+        """
+        # Get perimeter
+        perimeter = set()
+        for i in range(len(corners)):
+            p1 = corners[i]
+            p2 = corners[(i + 1) % len(corners)]
+            
+            r1, c1 = p1
+            r2, c2 = p2
+            
+            if r1 == r2:
+                for c in range(min(c1, c2), max(c1, c2) + 1):
+                    perimeter.add((r1, c))
+            elif c1 == c2:
+                for r in range(min(r1, r2), max(r1, r2) + 1):
+                    perimeter.add((r, c1))
+        
+        if not fill:
+            return perimeter
+        
+        # Flood fill from (0, 0) to find outside
+        outside = set()
+        to_visit = [(0, 0)]
+        
+        while to_visit:
+            r, c = to_visit.pop()
+            
+            if (r, c) in outside:
+                continue
+            if not self.in_bounds(r, c):
+                continue
+            if (r, c) in perimeter:
+                continue
+            
+            outside.add((r, c))
+            
+            to_visit.append((r - 1, c))
+            to_visit.append((r + 1, c))
+            to_visit.append((r, c - 1))
+            to_visit.append((r, c + 1))
+        
+        # Inside = all positions - outside
+        all_positions = set(self.iter_positions())
+        return all_positions - outside
     
     # ------------------------------------------------
     # ITERATION ACROSS GRID 

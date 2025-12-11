@@ -1,7 +1,7 @@
 [project]
-name = "adventofcode"
+name = "adventofcode-ym"
 version = "0.1.0"
-description = "Yianni's solutions for https://adventofcode.com/"
+description = "Yianni's solutions & helpers for https://adventofcode.com/"
 
 [build-system]
 requires = ["setuptools"]
